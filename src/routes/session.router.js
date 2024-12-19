@@ -1,13 +1,14 @@
 
 import { Router } from "express";
-import { userDao } from "../dao/mongo/user.dao.js";
+import { userDao } from "../dao/user.dao.js";
 import { createToken, verifyToken } from "../utils/jwt.js";
 import { passportCall } from "../middlewares/passport.middleware.js";
-import UserDTO from "../dtos/user.dto.js";
+import UserDTO from "../dto/user.dto.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-router.get("/current", passportCall("jwt"), authorization("user"), async (req, res) => {
+router.get("/current", passportCall("jwt"), authMiddleware("user"), async (req, res) => {
   try {
     const user = await userDao.getById(req.user.id);
     const userDTO = new UserDTO(user);

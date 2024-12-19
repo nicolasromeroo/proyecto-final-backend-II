@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    default: "user",
+    default: "admin",
   },
   cart: { type: mongoose.Schema.Types.ObjectId, ref: "cart" }
 });

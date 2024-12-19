@@ -1,40 +1,43 @@
-
-import Cart from "../models/cart.model.js"
-// import ticket from "../models/ticket.model.js"
+import { cartModel } from "../models/cart.model.js";
+import { productModel } from "../models/product.model.js";
+import { ticketModel } from "../models/ticket.model.js";
 
 class CartService {
     static async finalizePurchase(cartId) {
-        const cart = await Cart.findById(cartId).populate("products");
+        const cart = await cartModel.findById(cartId).populate("products.product");
         if (!cart) throw new Error("Carrito no encontrado");
 
         let total = 0;
         const unavailableProducts = [];
+        const processedProducts = [];
 
-        for (let product of cart.products) {
-            const productData = await Product.findById(product._id);
-            if (productData.stock >= product.quantity) {
-                total += productData.price * product.quantity;
-                productData.stock -= product.quantity;
+        for (let item of cart.products) {
+            const productData = item.product;
+
+            if (productData.stock >= item.quantity) {
+                total += productData.price * item.quantity;
+                productData.stock -= item.quantity;
                 await productData.save();
+                processedProducts.push(item.product._id);
             } else {
-                unavailableProducts.push(product._id);
+                unavailableProducts.push(item.product._id);
             }
         }
 
-        const ticket = new Ticket({
+        const ticket = new ticketModel({
             amount: total,
             purchaser: cart.userEmail
         });
         await ticket.save();
 
-        cart.products = cart.products.filter(product => !unavailableProducts.includes(product._id));
+        cart.products = cart.products.filter(item => !processedProducts.includes(item.product._id));
         await cart.save();
 
         return {
             message: "Compra finalizada.",
             ticket,
             unavailableProducts
-        }
+        };
     }
 }
 

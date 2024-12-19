@@ -6,7 +6,6 @@ import { Router } from "express";
 
 const router = Router()
 
-// agregar productos al carrito
 router.post("/:cid/products/:pid", authMiddleware("user"), (req, res) => {
     res.json({ message: "Producto agregado al carrito." })
 })

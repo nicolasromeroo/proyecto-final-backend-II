@@ -1,25 +1,20 @@
 
 import { Router } from "express";
-import authMiddleware from '../middlewares/authMiddleware.js';
+import { ProductController } from "../controllers/products.controller.js";
+import { checkProductData } from "../middlewares/checkProductData.middleware.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
+import { passportCall } from "../middlewares/passport.middleware.js";
 
-const router = Router()
+const productController = new ProductController();
+const router = Router();
 
-// crear producto (admin)
-router.post('/', authMiddleware('admin'), (req, res) => {
-  // Lógica para crear producto
-  res.status(201).json({ message: 'Producto creado' });
-});
+router.get("/", productController.getAll);
 
-// actualizar producto (admin)
-router.put('/:id', authMiddleware('admin'), (req, res) => {
-  // Lógica para actualizar producto
-  res.json({ message: 'Producto actualizado' });
-});
+router.get("/:pid", productController.getById);
 
-// eliminar producto (admin)
-router.delete('/:id', authMiddleware('admin'), (req, res) => {
-  // Lógica para eliminar producto
-  res.json({ message: 'Producto eliminado' });
-});
+router.delete("/:pid", passportCall('jwt'), authMiddleware('admin'), productController.deleteOne);
 
-export default router
+router.put("/:pid", passportCall('jwt'), authMiddleware('admin'), productController.update);
+
+router.post("/", checkProductData, passportCall('jwt'), authMiddleware('admin'), productController.create);
+export default router;
